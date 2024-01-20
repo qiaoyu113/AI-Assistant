@@ -1,0 +1,15 @@
+diff --git a/node_modules/vue-pdf/src/pdfjsWrapper.js b/node_modules/vue-pdf/src/pdfjsWrapper.js
+index 97dc78c..6e37180 100644
+--- a/node_modules/vue-pdf/src/pdfjsWrapper.js
++++ b/node_modules/vue-pdf/src/pdfjsWrapper.js
+@@ -193,9 +193,7 @@ export default function(PDFJS) {
+ 				if ( canceling )
+ 					return;
+ 				canceling = true;
+-				pdfRender.cancel().catch(function(err) {
+-					emitEvent('error', err);
+-				});
++				pdfRender.cancel()
+ 				return;
+ 			}
+ 
