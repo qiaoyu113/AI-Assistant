@@ -28,12 +28,12 @@
 from flask import Flask, request,jsonify,json
 from flask_cors import CORS, cross_origin
 
-import google.generativeai as genai
+# import google.generativeai as genai
 
-genai.configure(api_key="")
-for m in genai.list_models():
-  if 'generateContent' in m.supported_generation_methods:
-    print(m.name)
+# genai.configure(api_key="")
+# for m in genai.list_models():
+#   if 'generateContent' in m.supported_generation_methods:
+#     print(m.name)
 # context = """你是一个30岁左右的程序员，下面的乙这个角色，正在跟朋友聊天，
 #     请根据已有的聊天内容，产生对应的对话内容，要求：
 #     1. 字数不要超过30个字；
@@ -55,27 +55,28 @@ for m in genai.list_models():
 # response = model.generate_content(context)
 # print(1111, response.text)
 
+import llm
 app = Flask(__name__)
 Cors = CORS(app)
 CORS(app, resources={r'/*': {'origins': '*'}},CORS_SUPPORTS_CREDENTIALS = True)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-@app.route("/api/common/v3/sendMessage", methods=["POST","GET"])
+
+@app.route("/api/common/v3/sendMessage", methods=["GET","POST"])
+
 def submitData():
   response_object = {'code': 0}
   if request.method == "POST":
-    # post_data = request.get_json()
-    # name   = post_data.get('name'),
-    # department  = post_data.get('department')
-    # print(name)
-    # print(department)
+    message = request.json.get('message')
 
-
+    res = llm.requestChatGPT(message)
+    res_data = json.loads(res)
     response_object['data'] = {
-      'message': response.text
+      'data': res_data
     }
     return jsonify(response_object)
   
 
 if __name__ == '__main__':    
    app.run(debug=True)
+   
