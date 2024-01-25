@@ -61,16 +61,26 @@ Cors = CORS(app)
 CORS(app, resources={r'/*': {'origins': '*'}},CORS_SUPPORTS_CREDENTIALS = True)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-
 @app.route("/api/common/v3/sendMessage", methods=["GET","POST"])
-
 def submitData():
   response_object = {'code': 0}
   if request.method == "POST":
     message = request.json.get('message')
-
     res = llm.requestChatGPT(message)
     res_data = json.loads(res)
+    response_object['data'] = {
+      'data': res_data
+    }
+    return jsonify(response_object)
+  
+@app.route("/api/common/v3/getvoice", methods=["GET","POST"])
+def submitVoice():
+  response_object = {'code': 0}
+  if request.method == "POST":
+    input = request.json.get('input')
+
+    res = llm.requestChatVoice(input)
+    res_data = res
     response_object['data'] = {
       'data': res_data
     }

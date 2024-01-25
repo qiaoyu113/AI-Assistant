@@ -25,14 +25,16 @@
                 :key="index"
                 class="message_item"
               >
+                <!--assistant-->
                 <div v-if="item.message.role == 'assistant'" class="assistant">
                   <div class="head">
                     <svg t="1705604908582" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12762" width="200" height="200"><path d="M193.194667 499.165867h288.904533a1293.2096 1293.2096 0 0 0-70.724267-150.493867c-26.8288-46.455467-54.613333-81.339733-77.892266-81.339733s-51.2 34.9184-77.892267 81.339733a1404.074667 1404.074667 0 0 0-77.789867 167.901867 21.162667 21.162667 0 0 1-28.125866 11.9808 22.8352 22.8352 0 0 1-11.4688-29.422934 1451.485867 1451.485867 0 0 1 80.452266-173.738666c34.133333-58.914133 72.977067-103.2192 114.824534-103.2192s80.7936 44.373333 114.824533 103.2192a1452.8512 1452.8512 0 0 1 80.4864 173.738666 1403.153067 1403.153067 0 0 0 77.755733 167.901867c26.8288 46.455467 54.613333 81.339733 77.892267 81.339733s51.2-34.9184 77.892267-81.339733a1295.735467 1295.735467 0 0 0 70.690133-150.493867h-288.9728l-7.0656-17.339733h303.035733a21.162667 21.162667 0 0 1 28.16-11.9808 22.869333 22.869333 0 0 1 11.4688 29.422933 1453.2608 1453.2608 0 0 1-80.4864 173.738667c-34.133333 58.914133-72.977067 103.2192-114.7904 103.2192s-80.7936-44.373333-114.824533-103.2192a1452.680533 1452.680533 0 0 1-80.4864-173.738667H186.0608l7.133867-17.476266z" p-id="12763" fill="#033535" /></svg>
                   </div>
-                  <div class="content">
+                  <div class="content" @click="getVoice(item.message.content)">
                     {{ item.message.content }}
                   </div>
                 </div>
+                <!--user-->
                 <div v-if="item.message.role == 'user'" class="user">
                   <div class="content">
                     {{ item.message.content }}
@@ -55,12 +57,15 @@
           </div>
         </div>
       </div>
+      <audio v-show="false" id="Speak" ref="audio" :key="key">
+        <source src="@/../../speak.mp3" type="audio/mp3">
+      </audio>
     </div>
   </div>
 </template>
 
 <script>
-import { sendMessage } from '@/api/conversation.js';
+import { sendMessage, getVoice } from '@/api/conversation.js';
 
 export default {
   name: 'Conversation',
@@ -71,7 +76,9 @@ export default {
       message: '',
       messageList: [],
       choices: [],
-      loading: false
+      loading: false,
+      key: '',
+      audioPath: '@/../../speak.mp3'
     }
   },
   computed: {
@@ -86,6 +93,34 @@ export default {
 
   },
   methods: {
+    playVoice() {
+      let Speak = document.getElementById('Speak');
+      fetch('@/../../speak.mp3')
+        .then(response => response.blob())
+        .then(blob => {
+          return Speak.play();
+        })
+        .catch(e => {
+          // Video playback failed ;(
+        })
+    },
+    // 播放声音
+    async getVoice(content) {
+      this.loading = true;
+      let { data } = await getVoice({
+        input: content
+      })
+      if (!data.code) {
+        this.key = Math.random().toString();
+        this.loading = false;
+        let Speak = document.getElementById('Speak');
+        Speak.load()
+        this.playVoice()
+      } else {
+        this.loading = false;
+      }
+    },
+    // 发送信息
     async sendMessage() {
       this.loading = true;
       let message = this.message;
@@ -105,6 +140,7 @@ export default {
         this.loading = false;
         this.scrollToBottom()
       } else {
+        this.loading = false;
         this.message = message;
         this.choices.pop()
         this.scrollToBottom()
@@ -114,7 +150,6 @@ export default {
     scrollToBottom() {
       this.$nextTick(() => {
         let chat = this.$el.querySelector('#chatBox')
-        console.log(chat.scrollHeight);
         chat.scrollTop = chat.scrollHeight
       })
     }
